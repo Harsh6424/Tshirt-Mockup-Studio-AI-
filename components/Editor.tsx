@@ -10,7 +10,6 @@ interface EditorProps {
   designs: (DesignState | null)[];
   onDesignChange: (index: number, props: Partial<DesignProperties>) => void;
   editorRef: React.RefObject<HTMLDivElement>;
-  isBlendPreviewActive: boolean;
 }
 
 const Editor: React.FC<EditorProps> = ({ 
@@ -18,7 +17,6 @@ const Editor: React.FC<EditorProps> = ({
     designs, 
     onDesignChange, 
     editorRef,
-    isBlendPreviewActive,
 }) => {
 
   return (
@@ -63,7 +61,6 @@ const Editor: React.FC<EditorProps> = ({
                     className="w-full h-full pointer-events-none" 
                     style={{ 
                         opacity: design.props.opacity,
-                        mixBlendMode: isBlendPreviewActive ? 'multiply' : 'normal',
                         transform: `rotate(${design.props.rotation || 0}deg)`,
                     }}
                 />

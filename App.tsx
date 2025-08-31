@@ -196,6 +196,30 @@ const SettingsIcon = () => (
     </svg>
 );
 
+const UploadIcon: React.FC<{className?: string}> = ({className}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5 mr-2"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+  </svg>
+);
+
+const UndoIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l4-4m-4 4l4 4" />
+    </svg>
+);
+
+const RedoIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+       <path strokeLinecap="round" strokeLinejoin="round" d="M21 10H11a8 8 0 00-8 8v2m18-10l-4-4m4 4l-4 4" />
+    </svg>
+);
+
+const MagicIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5 mr-2"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.8 2.8a1 1 0 011.4 0l1.2 1.2a1 1 0 001.4 0l1.2-1.2a1 1 0 011.4 0l1.2 1.2a1 1 0 001.4 0l1.2-1.2a1 1 0 011.4 0l2.4 2.4a1 1 0 010 1.4l-1.2 1.2a1 1 0 000 1.4l1.2 1.2a1 1 0 010 1.4l-2.4 2.4a1 1 0 01-1.4 0l-1.2-1.2a1 1 0 00-1.4 0l-1.2 1.2a1 1 0 01-1.4 0l-1.2-1.2a1 1 0 00-1.4 0l-1.2 1.2a1 1 0 01-1.4 0L2.8 9.8a1 1 0 010-1.4l1.2-1.2a1 1 0 000-1.4L2.8 5.6a1 1 0 010-1.4l2.4-2.4a1 1 0 011.4 0l1.2 1.2a1 1 0 001.4 0l1.2-1.2z" />
+    </svg>
+);
+
 
 const App: React.FC = () => {
   const [mockups, setMockups] = useState<Mockup[]>(TSHIRT_MOCKUPS);
@@ -209,7 +233,6 @@ const App: React.FC = () => {
   const [isUpscaling, setIsUpscaling] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [aiIntensity, setAiIntensity] = useState<string>('Medium');
-  const [isBlendPreviewActive, setIsBlendPreviewActive] = useState<boolean>(false);
   
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
@@ -316,6 +339,7 @@ const App: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+     event.target.value = '';
   }, [designs, history, historyIndex]);
 
   const handleDesignChange = useCallback((index: number, newProps: Partial<DesignProperties>) => {
@@ -485,6 +509,7 @@ const App: React.FC = () => {
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
+  const isAnyDesignLoaded = designs.some(d => d !== null);
 
   const closeAllPanels = () => {
     setIsSidebarOpen(false);
@@ -494,7 +519,7 @@ const App: React.FC = () => {
   return (
     <>
       {isApiKeyModalOpen && <ApiKeyModal onSave={handleSaveApiKey} initialApiKey={apiKey || ''} />}
-      <div className="h-screen w-screen flex flex-col text-gray-900 overflow-hidden">
+      <div className="h-screen w-screen flex flex-col text-gray-900 overflow-hidden bg-gradient-to-br from-gray-50 to-indigo-50">
         <header className="bg-white/60 backdrop-blur-lg border-b border-gray-200/80 z-20 flex-shrink-0">
             <div className="flex items-center justify-between h-16 px-4 sm:px-6">
                 <div className="w-10">
@@ -520,7 +545,8 @@ const App: React.FC = () => {
                 </div>
             </div>
         </header>
-        <div className="flex flex-grow overflow-hidden relative">
+
+        <div className="flex-grow flex lg:flex-row overflow-hidden relative">
           {(isSidebarOpen || isControlsOpen) && (
             <div 
                 className="fixed inset-0 bg-black/30 z-30 lg:hidden"
@@ -529,7 +555,7 @@ const App: React.FC = () => {
             />
           )}
 
-          <div className={`fixed lg:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+          <div className={`hidden lg:flex fixed lg:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
              <Sidebar 
                 mockups={mockups}
                 selectedMockupId={selectedMockup?.id || null} 
@@ -538,28 +564,92 @@ const App: React.FC = () => {
                 onClose={() => setIsSidebarOpen(false)}
               />
           </div>
-          
-          <main className="flex-grow p-4 sm:p-6 flex flex-col items-center overflow-y-auto">
-            <div className="flex flex-col items-center w-full">
-              <Editor
-                selectedMockup={selectedMockup}
-                designs={designs}
-                onDesignChange={handleDesignChange}
-                editorRef={editorRef}
-                isBlendPreviewActive={isBlendPreviewActive}
-              />
-              {selectedMockup && (
-                <ResultDisplay 
-                    generatedImage={generatedImage} 
-                    selectedMockup={selectedMockup}
-                    isLoading={isLoading}
-                    isUpscaling={isUpscaling}
-                    onUpscale={handleUpscale}
-                    error={error} 
+
+          <div className="flex-grow flex flex-col overflow-hidden">
+             <main className="flex-grow p-4 sm:p-6 flex flex-col items-center overflow-y-auto">
+              <div className="flex flex-col items-center w-full">
+                <Editor
+                  selectedMockup={selectedMockup}
+                  designs={designs}
+                  onDesignChange={handleDesignChange}
+                  editorRef={editorRef}
                 />
+                {selectedMockup && (
+                  <ResultDisplay 
+                      generatedImage={generatedImage} 
+                      selectedMockup={selectedMockup}
+                      isLoading={isLoading}
+                      isUpscaling={isUpscaling}
+                      onUpscale={handleUpscale}
+                      error={error} 
+                  />
+                )}
+              </div>
+            </main>
+
+            {/* Mobile Bottom Bar */}
+            <div className="lg:hidden flex-shrink-0 flex flex-col p-3 border-t bg-white/80 backdrop-blur-lg z-10 space-y-3">
+              <div>
+                  <h3 className="text-xs font-bold text-gray-500 mb-2 px-1 uppercase tracking-wider">Select Mockup</h3>
+                  <div className="flex items-center space-x-3 overflow-x-auto pb-2 -mb-2">
+                      <label htmlFor="mobile-mockup-upload" className="flex-shrink-0 w-20 h-20 flex flex-col items-center justify-center p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-600 cursor-pointer transition-colors">
+                          <UploadIcon className="h-6 w-6 mb-1"/>
+                          <span className="text-xs text-center font-medium">Upload</span>
+                      </label>
+                      <input id="mobile-mockup-upload" type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleMockupUpload} />
+                      {mockups.map((mockup) => (
+                          <div
+                              key={mockup.id}
+                              onClick={() => handleMockupSelect(mockup)}
+                              className={`flex-shrink-0 w-20 h-20 p-1 rounded-lg cursor-pointer transition-all duration-200 ${selectedMockup?.id === mockup.id ? 'bg-indigo-600 shadow-md ring-2 ring-white/80' : 'bg-white shadow-sm'}`}
+                              aria-label={mockup.name}
+                          >
+                              <img src={mockup.imageUrl} alt={mockup.name} className="w-full h-full object-cover rounded-md"/>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+              {selectedMockup && (
+                  <div className="pt-3 border-t border-gray-200/80 space-y-3">
+                      <div className="flex items-center justify-between space-x-2">
+                          <label htmlFor="mobile-design-upload" className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+                              <UploadIcon className="h-5 w-5 mr-1.5"/>
+                               {designs.every(d => d === null) ? 'Upload Design' : 'Add/Change'}
+                          </label>
+                          <input 
+                              id="mobile-design-upload" 
+                              type="file" 
+                              accept="image/png, image/jpeg" 
+                              className="hidden" 
+                              onChange={(e) => {
+                                  const firstEmptyIndex = designs.findIndex(d => d === null);
+                                  const targetIndex = firstEmptyIndex === -1 ? 0 : firstEmptyIndex;
+                                  handleDesignUpload(e, targetIndex);
+                              }}
+                          />
+                          <div className="flex items-center space-x-2">
+                              <button onClick={handleUndo} disabled={!canUndo} className="p-2 border border-gray-300 rounded-lg text-gray-600 bg-white hover:bg-gray-100 disabled:opacity-50" aria-label="Undo">
+                                  <UndoIcon />
+                              </button>
+                              <button onClick={handleRedo} disabled={!canRedo} className="p-2 border border-gray-300 rounded-lg text-gray-600 bg-white hover:bg-gray-100 disabled:opacity-50" aria-label="Redo">
+                                  <RedoIcon />
+                              </button>
+                          </div>
+                      </div>
+                      {isAnyDesignLoaded && (
+                        <button 
+                            onClick={handleGenerate} 
+                            disabled={isLoading}
+                            className="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+                        >
+                            <MagicIcon />
+                            {isLoading ? 'Generating...' : 'Attach with AI'}
+                        </button>
+                      )}
+                  </div>
               )}
             </div>
-          </main>
+          </div>
           
           <div className={`fixed lg:relative inset-y-0 right-0 z-40 transform transition-transform duration-300 ease-in-out ${isControlsOpen ? 'translate-x-0' : 'translate-x-full'} lg:translate-x-0`}>
             <Controls
@@ -578,8 +668,6 @@ const App: React.FC = () => {
                 onDesignChange={handleDesignChange}
                 onSave={handleSave}
                 onLoad={handleLoad}
-                isBlendPreviewActive={isBlendPreviewActive}
-                onBlendPreviewToggle={() => setIsBlendPreviewActive(prev => !prev)}
                 onBringForward={handleBringForward}
                 onSendBackward={handleSendBackward}
                 onEditApiKey={() => setIsApiKeyModalOpen(true)}

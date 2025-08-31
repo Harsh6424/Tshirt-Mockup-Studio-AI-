@@ -17,8 +17,6 @@ interface ControlsProps {
   onDesignChange: (index: number, newProps: Partial<DesignProperties>) => void;
   onSave: () => void;
   onLoad: () => void;
-  isBlendPreviewActive: boolean;
-  onBlendPreviewToggle: () => void;
   onBringForward: (index: number) => void;
   onSendBackward: (index: number) => void;
   onEditApiKey: () => void;
@@ -68,13 +66,6 @@ const LoadIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
-const BlendIcon: React.FC<{className?: string}> = ({className}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5 mr-2"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1v11z" />
-        <line x1="4" y1="12" x2="20" y2="12" />
-    </svg>
-);
-
 const LayerForwardIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -82,7 +73,7 @@ const LayerForwardIcon: React.FC<{className?: string}> = ({className}) => (
 );
   
 const LayerBackwardIcon: React.FC<{className?: string}> = ({className}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 5l-9 18 9-2 9 2-9-18zm0 0v8" />
     </svg>
 );
@@ -121,8 +112,6 @@ const Controls: React.FC<ControlsProps> = ({
     onDesignChange,
     onSave,
     onLoad,
-    isBlendPreviewActive,
-    onBlendPreviewToggle,
     onBringForward,
     onSendBackward,
     onEditApiKey,
@@ -161,7 +150,7 @@ const Controls: React.FC<ControlsProps> = ({
       <div className="flex-grow overflow-y-auto space-y-4 pr-2 -mr-2">
         {Array.from({ length: designAreas }).map((_, index) => (
           <ControlCard key={index} title={designAreas > 1 ? designLabels[index] : 'Design'}>
-            <label htmlFor={`design-upload-${index}`} className={secondaryButtonClass + ' cursor-pointer'}>
+            <label htmlFor={`design-upload-${index}`} className={secondaryButtonClass + ' cursor-pointer hidden lg:flex'}>
               <UploadIcon />
               Upload Design
             </label>
@@ -222,16 +211,6 @@ const Controls: React.FC<ControlsProps> = ({
         ))}
         {isAnyDesignLoaded && (
             <>
-                <ControlCard title="Live Preview" className="animate-delay-100">
-                     <button
-                        onClick={onBlendPreviewToggle}
-                        className={secondaryButtonClass}
-                    >
-                        <BlendIcon />
-                        {isBlendPreviewActive ? 'Hide Blend' : 'Show Blend'}
-                    </button>
-                </ControlCard>
-                
                 <ControlCard title="Project & History" className="animate-delay-200">
                     <div className="grid grid-cols-2 gap-2">
                          <button onClick={onSave} className={secondaryButtonClass}>
@@ -244,7 +223,7 @@ const Controls: React.FC<ControlsProps> = ({
                     <button onClick={onEditApiKey} className={secondaryButtonClass}>
                         <KeyIcon /> Change API Key
                     </button>
-                     <div className="flex items-center justify-center space-x-2">
+                     <div className="hidden lg:flex items-center justify-center space-x-2">
                         <button onClick={onUndo} disabled={!canUndo} className={iconButtonClass + " flex-1"} aria-label="Undo" title="Undo">
                             <UndoIcon />
                         </button>
@@ -274,7 +253,7 @@ const Controls: React.FC<ControlsProps> = ({
             </>
         )}
       </div>
-      <div className="pt-4 mt-4 border-t border-gray-200/80 flex-shrink-0">
+      <div className="pt-4 mt-4 border-t border-gray-200/80 flex-shrink-0 hidden lg:block">
        {isAnyDesignLoaded && (
           <button 
             onClick={onGenerate} 
