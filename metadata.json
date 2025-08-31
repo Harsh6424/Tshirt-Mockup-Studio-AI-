@@ -1,0 +1,5 @@
+{
+  "name": "AI T-Shirt Mockup Generator",
+  "description": "An application to create realistic T-shirt mockups. Upload your design, position it on a T-shirt, and use AI to blend it naturally with the fabric's texture and wrinkles.",
+  "requestFramePermissions": []
+}
