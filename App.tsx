@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
@@ -7,9 +6,9 @@ import ResultDisplay from './components/ResultDisplay';
 import ApiKeyModal from './components/ApiKeyModal';
 import { Mockup, DesignProperties, DesignState } from './types';
 import { attachDesignToMockup } from './services/geminiService';
-import { TSHIRT_MOCKUPS, EDITOR_SIZE } from './constants';
+import { TSHIRT_MOCKUPS, MAX_EDITOR_SIZE } from './constants';
 
-const createCompositeImage = (mockup: Mockup, designs: (DesignState | null)[]): Promise<string> => {
+const createCompositeImage = (mockup: Mockup, designs: (DesignState | null)[], editorSize: { width: number; height: number; }): Promise<string> => {
     return new Promise((resolve, reject) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -44,18 +43,18 @@ const createCompositeImage = (mockup: Mockup, designs: (DesignState | null)[]): 
 
             Promise.all(designImagePromises).then(loadedImages => {
                 const mockupAspectRatio = baseImage.width / baseImage.height;
-                const editorAspectRatio = 1;
+                const editorAspectRatio = editorSize.width / editorSize.height;
 
                 let displayedWidth, displayedHeight, offsetX, offsetY;
                 if (mockupAspectRatio > editorAspectRatio) {
-                    displayedWidth = EDITOR_SIZE;
-                    displayedHeight = EDITOR_SIZE / mockupAspectRatio;
+                    displayedWidth = editorSize.width;
+                    displayedHeight = editorSize.width / mockupAspectRatio;
                     offsetX = 0;
-                    offsetY = (EDITOR_SIZE - displayedHeight) / 2;
+                    offsetY = (editorSize.height - displayedHeight) / 2;
                 } else {
-                    displayedWidth = EDITOR_SIZE * mockupAspectRatio;
-                    displayedHeight = EDITOR_SIZE;
-                    offsetX = (EDITOR_SIZE - displayedWidth) / 2;
+                    displayedWidth = editorSize.height * mockupAspectRatio;
+                    displayedHeight = editorSize.height;
+                    offsetX = (editorSize.width - displayedWidth) / 2;
                     offsetY = 0;
                 }
                 
@@ -184,6 +183,19 @@ const upscaleImageClientSide = (base64Image: string, scaleFactor: number): Promi
   });
 };
 
+const MenuIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+);
+
+const SettingsIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+);
+
 
 const App: React.FC = () => {
   const [mockups, setMockups] = useState<Mockup[]>(TSHIRT_MOCKUPS);
@@ -201,6 +213,9 @@ const App: React.FC = () => {
   
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -265,8 +280,9 @@ const App: React.FC = () => {
         const result = e.target?.result as string;
         const img = new Image();
         img.onload = () => {
+            const editorWidth = editorRef.current?.clientWidth || MAX_EDITOR_SIZE;
             const aspectRatio = img.width / img.height;
-            const maxDimension = EDITOR_SIZE * 0.5;
+            const maxDimension = editorWidth * 0.5;
 
             let newWidth, newHeight;
             if (aspectRatio > 1) {
@@ -282,8 +298,8 @@ const App: React.FC = () => {
                 props: {
                     width: newWidth,
                     height: newHeight,
-                    x: (EDITOR_SIZE - newWidth) / 2,
-                    y: (EDITOR_SIZE - newHeight) / 2,
+                    x: (editorWidth - newWidth) / 2,
+                    y: (editorWidth - newHeight) / 2,
                     opacity: 1,
                     rotation: 0,
                 }
@@ -419,13 +435,18 @@ const App: React.FC = () => {
       setError("Please upload at least one design.");
       return;
     }
+    if (!editorRef.current) {
+        setError("Editor is not available.");
+        return;
+    }
 
     setIsLoading(true);
     setError(null);
     setGeneratedImage(null);
 
     try {
-      const compositeImageBase64 = await createCompositeImage(selectedMockup, designs);
+      const editorRect = editorRef.current.getBoundingClientRect();
+      const compositeImageBase64 = await createCompositeImage(selectedMockup, designs, { width: editorRect.width, height: editorRect.height });
       const compositeImageMimeType = 'image/png';
 
       const resultBase64 = await attachDesignToMockup(compositeImageBase64, compositeImageMimeType, aiIntensity, apiKey);
@@ -465,23 +486,60 @@ const App: React.FC = () => {
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
+  const closeAllPanels = () => {
+    setIsSidebarOpen(false);
+    setIsControlsOpen(false);
+  }
+
   return (
     <>
       {isApiKeyModalOpen && <ApiKeyModal onSave={handleSaveApiKey} initialApiKey={apiKey || ''} />}
-      <div className="h-screen w-screen flex flex-col text-gray-900">
-        <header className="bg-white/60 backdrop-blur-lg border-b border-gray-200/80 z-10 flex-shrink-0">
-            <div className="flex items-center justify-between h-16 px-6">
-                <span className="font-extrabold text-xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">AI Mockup Studio</span>
+      <div className="h-screen w-screen flex flex-col text-gray-900 overflow-hidden">
+        <header className="bg-white/60 backdrop-blur-lg border-b border-gray-200/80 z-20 flex-shrink-0">
+            <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+                <div className="w-10">
+                    <button 
+                        onClick={() => setIsSidebarOpen(true)} 
+                        className="lg:hidden p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        aria-label="Open mockups panel"
+                    >
+                        <MenuIcon />
+                    </button>
+                </div>
+                <div className="flex-1 text-center lg:text-left">
+                    <span className="font-extrabold text-xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">AI Mockup Studio</span>
+                </div>
+                 <div className="w-10 flex justify-end">
+                    <button 
+                        onClick={() => setIsControlsOpen(true)} 
+                        className="lg:hidden p-2 -mr-2 rounded-full text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        aria-label="Open controls panel"
+                    >
+                        <SettingsIcon />
+                    </button>
+                </div>
             </div>
         </header>
-        <div className="flex flex-grow overflow-hidden">
-          <Sidebar 
-            mockups={mockups}
-            selectedMockupId={selectedMockup?.id || null} 
-            onSelectMockup={handleMockupSelect} 
-            onMockupUpload={handleMockupUpload}
-          />
-          <main className="flex-grow p-6 flex flex-col items-center overflow-y-auto">
+        <div className="flex flex-grow overflow-hidden relative">
+          {(isSidebarOpen || isControlsOpen) && (
+            <div 
+                className="fixed inset-0 bg-black/30 z-30 lg:hidden"
+                onClick={closeAllPanels}
+                aria-hidden="true"
+            />
+          )}
+
+          <div className={`fixed lg:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+             <Sidebar 
+                mockups={mockups}
+                selectedMockupId={selectedMockup?.id || null} 
+                onSelectMockup={handleMockupSelect} 
+                onMockupUpload={handleMockupUpload}
+                onClose={() => setIsSidebarOpen(false)}
+              />
+          </div>
+          
+          <main className="flex-grow p-4 sm:p-6 flex flex-col items-center overflow-y-auto">
             <div className="flex flex-col items-center w-full">
               <Editor
                 selectedMockup={selectedMockup}
@@ -490,38 +548,44 @@ const App: React.FC = () => {
                 editorRef={editorRef}
                 isBlendPreviewActive={isBlendPreviewActive}
               />
-              <ResultDisplay 
-                generatedImage={generatedImage} 
-                selectedMockup={selectedMockup}
-                isLoading={isLoading}
-                isUpscaling={isUpscaling}
-                onUpscale={handleUpscale}
-                error={error} 
-              />
+              {selectedMockup && (
+                <ResultDisplay 
+                    generatedImage={generatedImage} 
+                    selectedMockup={selectedMockup}
+                    isLoading={isLoading}
+                    isUpscaling={isUpscaling}
+                    onUpscale={handleUpscale}
+                    error={error} 
+                />
+              )}
             </div>
           </main>
-          <Controls
-            selectedMockup={selectedMockup}
-            onDesignUpload={handleDesignUpload}
-            onCenterDesign={handleCenterDesign}
-            onGenerate={handleGenerate}
-            onIntensityChange={handleIntensityChange}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            canUndo={canUndo}
-            canRedo={canRedo}
-            designs={designs}
-            isLoading={isLoading}
-            aiIntensity={aiIntensity}
-            onDesignChange={handleDesignChange}
-            onSave={handleSave}
-            onLoad={handleLoad}
-            isBlendPreviewActive={isBlendPreviewActive}
-            onBlendPreviewToggle={() => setIsBlendPreviewActive(prev => !prev)}
-            onBringForward={handleBringForward}
-            onSendBackward={handleSendBackward}
-            onEditApiKey={() => setIsApiKeyModalOpen(true)}
-          />
+          
+          <div className={`fixed lg:relative inset-y-0 right-0 z-40 transform transition-transform duration-300 ease-in-out ${isControlsOpen ? 'translate-x-0' : 'translate-x-full'} lg:translate-x-0`}>
+            <Controls
+                selectedMockup={selectedMockup}
+                onDesignUpload={handleDesignUpload}
+                onCenterDesign={handleCenterDesign}
+                onGenerate={handleGenerate}
+                onIntensityChange={handleIntensityChange}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                canUndo={canUndo}
+                canRedo={canRedo}
+                designs={designs}
+                isLoading={isLoading}
+                aiIntensity={aiIntensity}
+                onDesignChange={handleDesignChange}
+                onSave={handleSave}
+                onLoad={handleLoad}
+                isBlendPreviewActive={isBlendPreviewActive}
+                onBlendPreviewToggle={() => setIsBlendPreviewActive(prev => !prev)}
+                onBringForward={handleBringForward}
+                onSendBackward={handleSendBackward}
+                onEditApiKey={() => setIsApiKeyModalOpen(true)}
+                onClose={() => setIsControlsOpen(false)}
+            />
+          </div>
         </div>
       </div>
     </>

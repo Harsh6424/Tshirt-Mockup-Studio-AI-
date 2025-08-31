@@ -1,5 +1,5 @@
 import React from 'react';
-import { EDITOR_SIZE } from '../constants';
+import { MAX_EDITOR_SIZE } from '../constants';
 import { Mockup } from '../types';
 
 interface ResultDisplayProps {
@@ -12,7 +12,7 @@ interface ResultDisplayProps {
 }
 
 const Loader: React.FC = () => (
-    <div className="flex flex-col items-center justify-center text-gray-600 p-8" style={{ height: EDITOR_SIZE }}>
+    <div className="flex flex-col items-center justify-center text-gray-600 p-8" style={{ height: MAX_EDITOR_SIZE }}>
         <div className="relative h-16 w-16">
             <div className="absolute inset-0 border-4 border-indigo-200 rounded-full"></div>
             <div className="absolute inset-0 border-t-4 border-indigo-600 rounded-full animate-spin"></div>
@@ -36,7 +36,7 @@ const UpscaleIcon: React.FC<{className?: string}> = ({className}) => (
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ generatedImage, selectedMockup, isLoading, error, isUpscaling, onUpscale }) => {
     return (
-        <div className="w-full mt-8 fade-in-up" style={{ maxWidth: EDITOR_SIZE }}>
+        <div className="w-full mt-8 fade-in-up" style={{ maxWidth: MAX_EDITOR_SIZE }}>
             <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Generated Mockup</h2>
             
             <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/80 p-4 flex flex-col items-center transition-all duration-300">
@@ -44,8 +44,8 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ generatedImage, selectedM
                 {error && !isLoading && <p className="text-red-600 text-center p-4 bg-red-50 rounded-md w-full">{error}</p>}
                 
                 {!isLoading && !error && !generatedImage && (
-                    <div className="w-full flex items-center justify-center bg-gray-50/50 rounded-lg border-2 border-dashed" style={{ height: EDITOR_SIZE - 40 }}>
-                        <p className="text-gray-500 font-medium">Your AI-generated mockup will appear here.</p>
+                    <div className="w-full flex items-center justify-center bg-gray-50/50 rounded-lg border-2 border-dashed aspect-square" style={{ maxHeight: MAX_EDITOR_SIZE - 40 }}>
+                        <p className="text-gray-500 font-medium p-4 text-center">Your AI-generated mockup will appear here.</p>
                     </div>
                 )}
                 
@@ -54,11 +54,11 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ generatedImage, selectedM
                         <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden mb-4 shadow-inner">
                            <img src={generatedImage} alt={`Generated mockup for ${selectedMockup?.name}`} className="w-full h-full object-contain" />
                         </div>
-                        <div className="w-full flex items-center space-x-3">
+                        <div className="w-full flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
                             <a
                                 href={generatedImage}
                                 download={`ai-mockup-${selectedMockup?.id || 'custom'}.png`}
-                                className={`flex-1 inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105 ${isUpscaling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`w-full sm:w-auto flex-1 inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105 ${isUpscaling ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 aria-disabled={isUpscaling}
                                 onClick={(e) => { if (isUpscaling) e.preventDefault(); }}
                             >
@@ -68,7 +68,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ generatedImage, selectedM
                              <button
                                 onClick={onUpscale}
                                 disabled={isUpscaling || isLoading}
-                                className="flex-1 inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+                                className="w-full sm:w-auto flex-1 inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
                             >
                                 <UpscaleIcon />
                                 {isUpscaling ? 'Upscaling...' : 'Upscale & Enhance'}

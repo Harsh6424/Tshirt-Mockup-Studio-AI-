@@ -19,4 +19,4 @@ export const TSHIRT_MOCKUPS: Mockup[] = [
   },
 ];
 
-export const EDITOR_SIZE = 512;
+export const MAX_EDITOR_SIZE = 512;

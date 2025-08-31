@@ -3,7 +3,7 @@ import React from 'react';
 // In a real project, you would `npm install react-rnd @types/react-rnd`.
 import { Rnd } from 'react-rnd';
 import { Mockup, DesignProperties, DesignState } from '../types';
-import { EDITOR_SIZE } from '../constants';
+import { MAX_EDITOR_SIZE } from '../constants';
 
 interface EditorProps {
   selectedMockup: Mockup | null;
@@ -24,8 +24,8 @@ const Editor: React.FC<EditorProps> = ({
   return (
     <div 
         ref={editorRef} 
-        className="relative shadow-2xl rounded-2xl overflow-hidden bg-white border border-gray-200/50 transform transition-all duration-500" 
-        style={{ width: EDITOR_SIZE, height: EDITOR_SIZE, isolation: 'isolate' }}
+        className="relative shadow-2xl rounded-2xl overflow-hidden bg-white border border-gray-200/50 transform transition-all duration-500 w-full aspect-square" 
+        style={{ maxWidth: MAX_EDITOR_SIZE, isolation: 'isolate' }}
     >
       {selectedMockup ? (
         <div className="relative w-full h-full">

@@ -6,6 +6,7 @@ interface SidebarProps {
   selectedMockupId: string | null;
   onSelectMockup: (mockup: Mockup) => void;
   onMockupUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onClose?: () => void;
 }
 
 const UploadIcon: React.FC = () => (
@@ -14,16 +15,29 @@ const UploadIcon: React.FC = () => (
     </svg>
 );
 
+const CloseIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+);
 
 const Sidebar: React.FC<SidebarProps> = ({ 
     mockups, 
     selectedMockupId, 
     onSelectMockup, 
-    onMockupUpload
+    onMockupUpload,
+    onClose
 }) => {
   return (
-    <aside className="w-80 bg-white/80 backdrop-blur-lg p-4 flex flex-col border-r border-gray-200/80">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 px-2">Mockups</h2>
+    <aside className="w-80 h-full bg-white/80 backdrop-blur-lg p-4 flex flex-col border-r border-gray-200/80">
+      <div className="flex items-center justify-between mb-6 px-2">
+        <h2 className="text-2xl font-bold text-gray-800">Mockups</h2>
+        {onClose && (
+            <button onClick={onClose} className="lg:hidden p-1 rounded-full text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <CloseIcon />
+            </button>
+        )}
+      </div>
       
       <div className="px-2 mb-4">
         <label htmlFor="mockup-upload" className="group w-full inline-flex items-center justify-center px-4 py-2.5 border-2 border-dashed border-gray-300 text-sm font-medium rounded-xl text-gray-600 bg-transparent hover:border-indigo-500 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-all duration-300">
@@ -37,7 +51,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         {mockups.map((mockup) => (
           <div
             key={mockup.id}
-            onClick={() => onSelectMockup(mockup)}
+            onClick={() => {
+                onSelectMockup(mockup);
+                if (onClose) onClose();
+            }}
             className={`cursor-pointer p-2.5 rounded-xl flex items-center space-x-4 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-md ${
               selectedMockupId === mockup.id
                 ? 'bg-indigo-600 shadow-lg'
@@ -46,7 +63,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             aria-selected={selectedMockupId === mockup.id}
             role="option"
             tabIndex={0}
-            onKeyPress={(e) => e.key === 'Enter' && onSelectMockup(mockup)}
+            onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                    onSelectMockup(mockup);
+                    if (onClose) onClose();
+                }
+            }}
           >
             <img src={mockup.imageUrl} alt={mockup.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border-2 border-white/50 shadow-sm" />
             <span className={`text-sm break-words ${selectedMockupId === mockup.id ? 'text-white font-semibold' : 'text-gray-700 font-medium'}`}>

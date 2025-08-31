@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Mockup, DesignState, DesignProperties } from '../types';
 
@@ -23,6 +22,7 @@ interface ControlsProps {
   onBringForward: (index: number) => void;
   onSendBackward: (index: number) => void;
   onEditApiKey: () => void;
+  onClose?: () => void;
 }
 
 const UploadIcon: React.FC<{className?: string}> = ({className}) => (
@@ -99,6 +99,11 @@ const KeyIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
+const CloseIcon: React.FC = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+);
 
 const Controls: React.FC<ControlsProps> = ({ 
     onDesignUpload, 
@@ -121,6 +126,7 @@ const Controls: React.FC<ControlsProps> = ({
     onBringForward,
     onSendBackward,
     onEditApiKey,
+    onClose,
 }) => {
   const designAreas = selectedMockup?.designAreas || 1;
   const designLabels = ['Front Design', 'Back Design'];
@@ -142,7 +148,16 @@ const Controls: React.FC<ControlsProps> = ({
   );
   
   return (
-    <aside className="w-80 bg-gray-50/50 backdrop-blur-lg p-4 border-l border-gray-200/80 flex flex-col">
+    <aside className="w-80 h-full bg-gray-50/50 backdrop-blur-lg p-4 border-l border-gray-200/80 flex flex-col">
+       <div className="flex items-center justify-between mb-6 px-2 flex-shrink-0">
+        <h2 className="text-2xl font-bold text-gray-800">Controls</h2>
+        {onClose && (
+            <button onClick={onClose} className="lg:hidden p-1 rounded-full text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <CloseIcon />
+            </button>
+        )}
+      </div>
+
       <div className="flex-grow overflow-y-auto space-y-4 pr-2 -mr-2">
         {Array.from({ length: designAreas }).map((_, index) => (
           <ControlCard key={index} title={designAreas > 1 ? designLabels[index] : 'Design'}>
@@ -259,7 +274,7 @@ const Controls: React.FC<ControlsProps> = ({
             </>
         )}
       </div>
-      <div className="pt-4 mt-4 border-t border-gray-200/80">
+      <div className="pt-4 mt-4 border-t border-gray-200/80 flex-shrink-0">
        {isAnyDesignLoaded && (
           <button 
             onClick={onGenerate} 
